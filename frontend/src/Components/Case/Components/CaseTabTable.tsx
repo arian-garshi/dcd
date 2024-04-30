@@ -49,6 +49,8 @@ const CaseTabTable = ({
     const { editMode } = useAppContext()
 
     const profilesToRowData = () => {
+        console.log("__")
+
         const tableRows: any[] = []
         timeSeriesData.forEach((ts) => {
             const isOverridden = ts.overrideProfile?.override === true
@@ -104,6 +106,8 @@ const CaseTabTable = ({
     }
 
     const lockIcon = (params: any) => {
+        console.log("__")
+
         const handleLockIconClick = () => {
             if (params?.data?.override !== undefined) {
                 setOverrideModalOpen(true)
@@ -139,6 +143,8 @@ const CaseTabTable = ({
     }
 
     const getRowStyle = (params: any) => {
+        console.log("__")
+
         if (params.node.footer) {
             return { fontWeight: "bold" }
         }
@@ -158,6 +164,8 @@ const CaseTabTable = ({
     }
 
     const generateTableYearColDefs = () => {
+        console.log("__")
+
         const columnPinned: any[] = [
             {
                 field: "profileName",
@@ -224,6 +232,8 @@ const CaseTabTable = ({
         }
 
         const validateInput = (params: any) => {
+            console.log("__")
+
             const { value, data } = params
             if (isEditable(params) && editMode && value) {
                 const rule = validationRules[data.profileName]
@@ -258,14 +268,25 @@ const CaseTabTable = ({
     const [columnDefs, setColumnDefs] = useState<ColDef[]>(generateTableYearColDefs())
 
     const onGridReady = (params: any) => {
-        setGridApi(params.api)
+        console.log("__")
+
+        setGridApi(params.api) // not the reason for flickering
     }
 
+    useEffect(() => {
+        console.log("columnDefs changed", columnDefs)
+        console.log("for table", tableName)
+    }, [columnDefs])
+
     const updateRowData = (newData: any) => {
+        console.log("__")
+
         if (gridApi) {
+            // this runs for every table when one table is updated
+            // but disabling  setRowData(newData) still does not fix the flickering
             (gridApi as any).setRowData(newData)
         } else {
-            setRowData(newData)
+            setRowData(newData) // not triggered on every cell change. not the reason for flickering
         }
     }
 
@@ -305,6 +326,7 @@ const CaseTabTable = ({
     }
 
     const gridRefArrayToAlignedGrid = () => {
+        console.log("__")
         if (alignedGridsRef && alignedGridsRef.length > 0) {
             const refArray: any[] = []
             alignedGridsRef.forEach((agr: any) => {
@@ -319,21 +341,24 @@ const CaseTabTable = ({
         return undefined
     }
 
-    const defaultColDef = useMemo(() => ({
-        sortable: true,
-        filter: true,
-        resizable: true,
-        editable: true,
-        onCellValueChanged: handleCellValueChange,
-        suppressMenu: true,
-    }), [])
-
+    // even removing this whole useEffect does not fix the flickering
     useEffect(() => {
-        updateRowData(profilesToRowData())
+        updateRowData(profilesToRowData()) // not the reason for flickering
         const newColDefs = generateTableYearColDefs()
-        setColumnDefs(newColDefs)
+        setColumnDefs(newColDefs) // not the reason for flickering
     }, [timeSeriesData, tableYears])
 
+    useEffect(() => {
+        if (tableName === "Total study cost") console.log("time series data changed", timeSeriesData)
+    }, [timeSeriesData])
+
+    useEffect(() => {
+        if (tableName === "Total study cost") console.log("tableyears changed", tableYears)
+    }, [tableYears])
+
+    useEffect(() => {
+        if (tableName === "Total study cost") console.log("rowdata changed", rowData)
+    }, [rowData])
     return (
         <>
             <OverrideTimeSeriesPrompt
@@ -351,18 +376,18 @@ const CaseTabTable = ({
                 >
                     <AgGridReact
                         ref={gridRef}
-                        rowData={rowData}
+                        rowData={rowData} // row data is not updated on other tables cell change. not the reason for flickering
                         columnDefs={columnDefs}
                         defaultColDef={defaultColDef}
-                        animateRows
+                        animateRows // not the reason for flickering
                         domLayout="autoHeight"
-                        enableCellChangeFlash
+                        enableCellChangeFlash // not the reason for flickering
                         rowSelection="multiple"
                         enableRangeSelection
                         suppressCopySingleCellRanges
                         suppressMovableColumns
                         enableCharts
-                        alignedGrids={gridRefArrayToAlignedGrid()}
+                        alignedGrids={gridRefArrayToAlignedGrid()} // not the reason for flickering
                         groupIncludeTotalFooter={includeFooter}
                         getRowStyle={getRowStyle}
                         suppressLastEmptyLineOnPaste

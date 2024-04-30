@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useEffect, useMemo } from "react"
 import { ITimeSeriesData } from "../../../../../Models/ITimeSeriesData"
 import { useProjectContext } from "../../../../../Context/ProjectContext"
 import { useCaseContext } from "../../../../../Context/CaseContext"
@@ -35,6 +35,8 @@ const TotalStudyCosts: React.FC<CesationCostsProps> = ({ tableYears, studyGridRe
         setTotalOtherStudies,
     } = useCaseContext()
 
+    // using useMemo did not stop the flickering. it also stopped the fields from
+    // turning into input on edit mode
     const studyTimeSeriesData: ITimeSeriesData[] = [
         {
             profileName: "Feasibility & conceptual stud.",
@@ -59,6 +61,9 @@ const TotalStudyCosts: React.FC<CesationCostsProps> = ({ tableYears, studyGridRe
             set: setTotalOtherStudies,
         },
     ]
+    useEffect(() => {
+        console.log("studyTimeSeriesData changed")
+    }, [studyTimeSeriesData])
 
     useEffect(() => {
         if (studyGridRef.current
